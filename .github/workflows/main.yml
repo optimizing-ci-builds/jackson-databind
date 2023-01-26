@@ -66,3 +66,4 @@ jobs:
         token: ${{ secrets.CODECOV_TOKEN }}
         file: ./target/site/jacoco/jacoco.xml
         flags: unittests
+
