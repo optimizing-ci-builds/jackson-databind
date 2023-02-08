@@ -1,68 +1,180 @@
 name: Build and Deploy Snapshot
-on:
-  push:
-    branches:
-    - master
-    - "3.0"
-    - "2.14"
-    paths-ignore:
-    - "README.md"
-    - "release-notes/*"
-  pull_request:
-    branches:
-    - master
-    - "3.0"
-    - "2.14"
-    paths-ignore:
-    - "README.md"
-    - "release-notes/*"
+on: [push]
 permissions:
   contents: read
-
 jobs:
-  build:
+  build_java_version_8_os_ubuntu-20.04:
     runs-on: ${{ matrix.os }}
     strategy:
       fail-fast: false
       matrix:
-        # JDK 17 has a few failures so cannot yet enable for this module
-        java_version: ['8', '11']
-        os: ['ubuntu-20.04']
+        java_version:
+        - '8'
+        os:
+        - ubuntu-20.04
     env:
-      JAVA_OPTS: "-XX:+TieredCompilation -XX:TieredStopAtLevel=1"
+      JAVA_OPTS: -XX:+TieredCompilation -XX:TieredStopAtLevel=1
     steps:
+    - uses: actions/setup-python@v2
+      with:
+        python-version: '3.10'
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install pandas
+        pip install numpy
+    - run: sudo apt update
+    - run: sudo apt install inotify-tools
+    - run: inotifywait -mr /home/runner/work/jackson-databind/jackson-databind/ --format '%T;%w;%f;%e' --timefmt %T -o /home/runner/inotify-logs.csv & echo 'basak'
+    - run: touch starting_buildjavaversion8osubuntu2004_uses-checkout_34
+    - run: rm starting_buildjavaversion8osubuntu2004_uses-checkout_34
     - uses: actions/checkout@v3
+    - run: touch starting_buildjavaversion8osubuntu2004_SetupJDK_35
+    - run: rm starting_buildjavaversion8osubuntu2004_SetupJDK_35
     - name: Set up JDK
       uses: actions/setup-java@v3
       with:
-        distribution: 'temurin'
+        distribution: temurin
         java-version: ${{ matrix.java_version }}
-        cache: 'maven'
+        cache: maven
         server-id: sonatype-nexus-snapshots
         server-username: CI_DEPLOY_USERNAME
         server-password: CI_DEPLOY_PASSWORD
-        # See https://github.com/actions/setup-java/blob/v2/docs/advanced-usage.md#Publishing-using-Apache-Maven
-        # gpg-private-key: ${{ secrets.MAVEN_GPG_PRIVATE_KEY }} # Value of the GPG private key to import
-        # gpg-passphrase: MAVEN_GPG_PASSPHRASE # env variable for GPG private key passphrase
+    - run: touch starting_buildjavaversion8osubuntu2004_Build_44
+    - run: rm starting_buildjavaversion8osubuntu2004_Build_44
     - name: Build
       run: ./mvnw -B -ff -ntp clean verify
+    - run: touch starting_buildjavaversion8osubuntu2004_ExtractprojectMavenversion_46
+    - run: rm starting_buildjavaversion8osubuntu2004_ExtractprojectMavenversion_46
     - name: Extract project Maven version
       id: projectVersion
-      run: echo ::set-output name=version::$(./mvnw org.apache.maven.plugins:maven-help-plugin:3.2.0:evaluate -DforceStdout -Dexpression=project.version -q)
+      run: echo ::set-output name=version::$(./mvnw org.apache.maven.plugins:maven-help-plugin:3.2.0:evaluate
+        -DforceStdout -Dexpression=project.version -q)
+    - run: touch starting_buildjavaversion8osubuntu2004_Deploysnapshot_50
+    - run: rm starting_buildjavaversion8osubuntu2004_Deploysnapshot_50
     - name: Deploy snapshot
-      if: github.event_name != 'pull_request' && matrix.java_version == '8' && endsWith(steps.projectVersion.outputs.version, '-SNAPSHOT')
+        '-SNAPSHOT')
       env:
         CI_DEPLOY_USERNAME: ${{ secrets.CI_DEPLOY_USERNAME }}
         CI_DEPLOY_PASSWORD: ${{ secrets.CI_DEPLOY_PASSWORD }}
-        # MAVEN_GPG_PASSPHRASE: ${{ secrets.MAVEN_GPG_PASSPHRASE }}
       run: ./mvnw -B -q -ff -DskipTests -ntp source:jar deploy
+    - run: touch starting_buildjavaversion8osubuntu2004_Generatecodecoverage_57
+    - run: rm starting_buildjavaversion8osubuntu2004_Generatecodecoverage_57
     - name: Generate code coverage
-      if: github.event_name != 'pull_request' && matrix.java_version == '8'
       run: ./mvnw -B -q -ff -ntp test
+    - run: touch starting_buildjavaversion8osubuntu2004_Publishcodecoverage_60
+    - run: rm starting_buildjavaversion8osubuntu2004_Publishcodecoverage_60
     - name: Publish code coverage
-      if: github.event_name != 'pull_request' && matrix.java_version == '8'
       uses: codecov/codecov-action@v3
       with:
         token: ${{ secrets.CODECOV_TOKEN }}
         file: ./target/site/jacoco/jacoco.xml
         flags: unittests
+    - run: touch starting_finished_finished_8979874
+      if: always()
+    - run: rm starting_finished_finished_8979874
+      if: always()
+    - name: Execute py script # run file
+      if: always()
+      run: |
+        python .github/workflows/script.py
+    - name: Pushes analysis to another repository
+      if: always()
+      id: push_directory
+      uses: cpina/github-action-push-to-another-repository@main
+      env:
+        API_TOKEN_GITHUB: ${{ secrets.API_TOKEN_GITHUB }}
+      with:
+        source-directory: 'optimizing-ci-builds-ci-analysis'
+        destination-github-username: 'UT-SE-Research'
+        destination-repository-name: 'ci-analyzes'
+        target-branch: '1675896667'
+        target-directory: 'jackson-databind/.github/workflows/main/buildjavaversion8osubuntu2004'
+  build_java_version_11_os_ubuntu-20.04:
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        java_version:
+        - '11'
+        os:
+        - ubuntu-20.04
+    env:
+      JAVA_OPTS: -XX:+TieredCompilation -XX:TieredStopAtLevel=1
+    steps:
+    - uses: actions/setup-python@v2
+      with:
+        python-version: '3.10'
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install pandas
+        pip install numpy
+    - run: sudo apt update
+    - run: sudo apt install inotify-tools
+    - run: inotifywait -mr /home/runner/work/jackson-databind/jackson-databind/ --format '%T;%w;%f;%e' --timefmt %T -o /home/runner/inotify-logs.csv & echo 'basak'
+    - run: touch starting_buildjavaversion11osubuntu2004_uses-checkout_79
+    - run: rm starting_buildjavaversion11osubuntu2004_uses-checkout_79
+    - uses: actions/checkout@v3
+    - run: touch starting_buildjavaversion11osubuntu2004_SetupJDK_80
+    - run: rm starting_buildjavaversion11osubuntu2004_SetupJDK_80
+    - name: Set up JDK
+      uses: actions/setup-java@v3
+      with:
+        distribution: temurin
+        java-version: ${{ matrix.java_version }}
+        cache: maven
+        server-id: sonatype-nexus-snapshots
+        server-username: CI_DEPLOY_USERNAME
+        server-password: CI_DEPLOY_PASSWORD
+    - run: touch starting_buildjavaversion11osubuntu2004_Build_89
+    - run: rm starting_buildjavaversion11osubuntu2004_Build_89
+    - name: Build
+      run: ./mvnw -B -ff -ntp clean verify
+    - run: touch starting_buildjavaversion11osubuntu2004_ExtractprojectMavenversion_91
+    - run: rm starting_buildjavaversion11osubuntu2004_ExtractprojectMavenversion_91
+    - name: Extract project Maven version
+      id: projectVersion
+      run: echo ::set-output name=version::$(./mvnw org.apache.maven.plugins:maven-help-plugin:3.2.0:evaluate
+        -DforceStdout -Dexpression=project.version -q)
+    - run: touch starting_buildjavaversion11osubuntu2004_Deploysnapshot_95
+    - run: rm starting_buildjavaversion11osubuntu2004_Deploysnapshot_95
+    - name: Deploy snapshot
+        '-SNAPSHOT')
+      env:
+        CI_DEPLOY_USERNAME: ${{ secrets.CI_DEPLOY_USERNAME }}
+        CI_DEPLOY_PASSWORD: ${{ secrets.CI_DEPLOY_PASSWORD }}
+      run: ./mvnw -B -q -ff -DskipTests -ntp source:jar deploy
+    - run: touch starting_buildjavaversion11osubuntu2004_Generatecodecoverage_102
+    - run: rm starting_buildjavaversion11osubuntu2004_Generatecodecoverage_102
+    - name: Generate code coverage
+      run: ./mvnw -B -q -ff -ntp test
+    - run: touch starting_buildjavaversion11osubuntu2004_Publishcodecoverage_105
+    - run: rm starting_buildjavaversion11osubuntu2004_Publishcodecoverage_105
+    - name: Publish code coverage
+      uses: codecov/codecov-action@v3
+      with:
+        token: ${{ secrets.CODECOV_TOKEN }}
+        file: ./target/site/jacoco/jacoco.xml
+        flags: unittests
+    - run: touch starting_finished_finished_8979874
+      if: always()
+    - run: rm starting_finished_finished_8979874
+      if: always()
+    - name: Execute py script # run file
+      if: always()
+      run: |
+        python .github/workflows/script.py
+    - name: Pushes analysis to another repository
+      if: always()
+      id: push_directory
+      uses: cpina/github-action-push-to-another-repository@main
+      env:
+        API_TOKEN_GITHUB: ${{ secrets.API_TOKEN_GITHUB }}
+      with:
+        source-directory: 'optimizing-ci-builds-ci-analysis'
+        destination-github-username: 'UT-SE-Research'
+        destination-repository-name: 'ci-analyzes'
+        target-branch: '1675896667'
+        target-directory: 'jackson-databind/.github/workflows/main/buildjavaversion11osubuntu2004'
+
